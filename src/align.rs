@@ -5,8 +5,6 @@
 
 use bio::alignment::pairwise::*;
 use bio::alignment::sparse::find_kmer_matches;
-use bio::alphabets;
-use bio::data_structures::qgram_index;
 use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 use std::collections::HashMap;
@@ -115,13 +113,6 @@ pub fn worth_aligning(seq1: &str, seq2: &str, fraction: f32) -> bool {
 
     kmers.len() > 0
 }
-
-// pub fn qgram_matches(seq1: &str, seq2: &str, k: usize) -> bool {
-//     let alphabet = alphabets::protein::alphabet();
-//     let qgram_index = qgram_index::QGramIndex::new(k as u32, seq1.as_bytes(), &alphabet);
-//     let matches = qgram_index.matches(seq2.as_bytes(), 1);
-//     matches.len() > 0
-// }
 
 /// Performs global alignment between two sequences and returns the alignment score.
 ///

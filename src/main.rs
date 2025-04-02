@@ -105,6 +105,14 @@ struct Args {
         help = "Minimum number of k-mer matches required for alignment"
     )]
     min_matches: usize,
+
+    /// Number of threads to use for parallel processing.
+    #[arg(
+        short,
+        long,
+        help = "Number of threads to use for parallel processing. If not provided, the number of threads will be determined automatically."
+    )]
+    threads: Option<usize>,
 }
 
 /// Scoring function wrapper that supports built-in and custom scoring matrices
@@ -169,7 +177,14 @@ fn main() {
 
     // Spawn the alignment computation using rayon's threading
     let computation_handle = std::thread::spawn(move || {
-        align_all_streaming(&input, &match_fn, args.fraction, args.min_matches, tx)
+        align_all_streaming(
+            &input,
+            &match_fn,
+            args.fraction,
+            args.min_matches,
+            tx,
+            args.threads,
+        )
     });
 
     // Process results as they arrive

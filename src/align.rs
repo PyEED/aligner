@@ -6,6 +6,7 @@
 use bio::alignment::pairwise::*;
 use bio::alignment::sparse::find_kmer_matches;
 use indicatif::ParallelProgressIterator;
+use rayon::ThreadPoolBuilder;
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::sync::mpsc::Sender;
@@ -38,17 +39,29 @@ pub fn align_all_streaming(
     fraction: Option<f32>,
     min_matches: usize,
     sender: Sender<AlignmentResult>,
+    num_threads: Option<usize>,
 ) {
-    // Collect keys into a vector for deterministic ordering
-    let keys: Vec<String> = input.keys().cloned().collect();
-
-    // Generate all unique pairs (triangular matrix) to flatten parallel iteration
-    let mut pairs = Vec::with_capacity(keys.len() * (keys.len() + 1) / 2);
-    for (i, query_id) in keys.iter().enumerate() {
-        for subject_id in keys.iter().take(i + 1) {
-            pairs.push((query_id.clone(), subject_id.clone()));
-        }
+    // Set up thread pool if num_threads is specified
+    if let Some(n) = num_threads {
+        ThreadPoolBuilder::new()
+            .num_threads(n)
+            .build_global()
+            .expect("Failed to initialize thread pool");
     }
+
+    // Use references to keys instead of cloning
+    let keys: Vec<&String> = input.keys().collect();
+
+    // Generate all unique pairs using references
+    let pairs: Vec<(&String, &String)> = keys
+        .iter()
+        .enumerate()
+        .flat_map(|(i, query_id)| {
+            keys[..=i]
+                .iter()
+                .map(move |subject_id| (*query_id, *subject_id))
+        })
+        .collect();
 
     // Setup progress bar with total comparisons
     let progress = setup_progress_bar(pairs.len() as u64);
@@ -62,8 +75,8 @@ pub fn align_all_streaming(
                 return;
             }
 
-            let query_seq = &input[query_id];
-            let subject_seq = &input[subject_id];
+            let query_seq = &input[*query_id];
+            let subject_seq = &input[*subject_id];
             let score = match fraction {
                 Some(fraction) => {
                     if worth_aligning(query_seq, subject_seq, fraction, min_matches) {
@@ -76,8 +89,8 @@ pub fn align_all_streaming(
             };
 
             let result = AlignmentResult {
-                query_id: query_id.clone(),
-                subject_id: subject_id.clone(),
+                query_id: (*query_id).clone(), // Clone only when creating the result
+                subject_id: (*subject_id).clone(), // Clone only when creating the result
                 score,
                 seq1_len: query_seq.len(),
                 seq2_len: subject_seq.len(),

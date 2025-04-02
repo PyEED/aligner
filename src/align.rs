@@ -36,6 +36,7 @@ pub fn align_all_streaming(
     input: &HashMap<String, String>,
     matcher: &MatcherFn,
     fraction: Option<f32>,
+    min_matches: usize,
     sender: Sender<AlignmentResult>,
 ) {
     // Collect keys into a vector for deterministic ordering
@@ -65,7 +66,7 @@ pub fn align_all_streaming(
             let subject_seq = &input[subject_id];
             let score = match fraction {
                 Some(fraction) => {
-                    if worth_aligning(query_seq, subject_seq, fraction) {
+                    if worth_aligning(query_seq, subject_seq, fraction, min_matches) {
                         Some(align(query_seq, subject_seq, matcher))
                     } else {
                         None
@@ -100,7 +101,7 @@ pub fn align_all_streaming(
 /// # Returns
 ///
 /// `true` if the sequences share at least one k-mer, `false` otherwise
-pub fn worth_aligning(seq1: &str, seq2: &str, fraction: f32) -> bool {
+pub fn worth_aligning(seq1: &str, seq2: &str, fraction: f32, min_matches: usize) -> bool {
     // Use shorter sequence as query
     let (query, subject) = if seq1.len() < seq2.len() {
         (seq1, seq2)
@@ -111,7 +112,7 @@ pub fn worth_aligning(seq1: &str, seq2: &str, fraction: f32) -> bool {
     let k = (query.len() as f32 * fraction) as usize;
     let kmers = find_kmer_matches(query.as_bytes(), subject.as_bytes(), k);
 
-    kmers.len() > 0
+    kmers.len() >= min_matches
 }
 
 /// Performs global alignment between two sequences and returns the alignment score.

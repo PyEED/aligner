@@ -96,6 +96,15 @@ struct Args {
     /// works for both protein and nucleotide sequences.
     #[arg(short, long, value_enum, default_value_t = ScoringType::Identity, help = "Scoring type to use for alignment")]
     scoring: ScoringType,
+
+    /// Minimum number of k-mer matches required for alignment.
+    #[arg(
+        short,
+        long,
+        default_value = "0",
+        help = "Minimum number of k-mer matches required for alignment"
+    )]
+    min_matches: usize,
 }
 
 /// Scoring function wrapper that supports built-in and custom scoring matrices
@@ -159,8 +168,9 @@ fn main() {
     let (tx, rx) = mpsc::channel();
 
     // Spawn the alignment computation using rayon's threading
-    let computation_handle =
-        std::thread::spawn(move || align_all_streaming(&input, &match_fn, args.fraction, tx));
+    let computation_handle = std::thread::spawn(move || {
+        align_all_streaming(&input, &match_fn, args.fraction, args.min_matches, tx)
+    });
 
     // Process results as they arrive
     let mut total_results = 0;

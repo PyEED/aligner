@@ -22,13 +22,14 @@ performance when dealing with large sequence sets.
 
 ## Options
 
-| Option                   | Description                                                       |
-| ------------------------ | ----------------------------------------------------------------- |
-| `-o, --output <FILE>`    | Specify output file path (tab-separated format)                   |
-| `-f, --fraction <FLOAT>` | Set pre-filtering fraction using k-mer matches (0.0-1.0)          |
-| `-s, --scoring <TYPE>`   | Choose scoring type: `blosum62` or `identity` (default: identity) |
-| `-h, --help`             | Display help information                                          |
-| `-V, --version`          | Show version information                                          |
+| Option                    | Description                                                             |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `-o, --output <FILE>`     | Specify output file path (tab-separated format)                         |
+| `-f, --fraction <FLOAT>`  | Set pre-filtering fraction using k-mer matches (0.0-1.0)                |
+| `-m, --min-matches <INT>` | Set minimum number of k-mer matches required for alignment (default: 0) |
+| `-s, --scoring <TYPE>`    | Choose scoring type: `blosum62` or `identity` (default: identity)       |
+| `-h, --help`              | Display help information                                                |
+| `-V, --version`           | Show version information                                                |
 
 ## Input Format
 

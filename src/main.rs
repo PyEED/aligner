@@ -130,7 +130,7 @@ impl Matcher {
     fn score(&self) -> MatcherFn {
         match self {
             Matcher::Blosum62 => blosum62,
-            Matcher::Identity => |a, b| if a == b { 1 } else { -1 },
+            Matcher::Identity => |a, b| if a == b { 1 } else { 0 },
             Matcher::Custom(matcher) => *matcher,
         }
     }
